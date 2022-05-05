@@ -8,10 +8,7 @@ let package = Package(name: "SSLog",
                         .library(name: "SSLog", targets: ["SSLog"]),
                       ],
                       dependencies: [
-                        .package(url: "https://github.com/zhtut/SSNetwork.git", from: "1.0.0"),
                       ],
                       targets: [
-                        .target(name: "SSLog", dependencies: [
-                            "SSNetwork",
-                        ]),
+                        .target(name: "SSLog"),
                       ])

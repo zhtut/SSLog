@@ -12,15 +12,6 @@ public func log(_ log: String) {
     SSLogManager.shared.log(log)
 }
 
-public func currDateDesc() -> String {
-    let date = Date()
-    let formatter = DateFormatter()
-    formatter.timeZone = TimeZone(identifier:"Asia/Hong_Kong")!
-    formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-    let str = formatter.string(from: date)
-    return str
-}
-
 open class SSLogManager: NSObject {
     public static let shared = SSLogManager()
     
@@ -36,9 +27,18 @@ open class SSLogManager: NSObject {
         }
     }
     
+    open class var currDateDesc: String {
+        let date = Date()
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier:"Asia/Hong_Kong")!
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let str = formatter.string(from: date)
+        return str
+    }
+    
     func currentFilePath() -> String {
         if currentFileName.count == 0 {
-            currentFileName = "\(currDateDesc()).txt"
+            currentFileName = "\(SSLogManager.currDateDesc).txt"
         }
         let path = "\(rootPath)/\(currentFileName)"
         do {
@@ -60,7 +60,7 @@ open class SSLogManager: NSObject {
         queue.async {
             let path = self.currentFilePath()
             var newText: String
-            let current = "\(currDateDesc()):\(message)"
+            let current = "\(SSLogManager.currDateDesc):\(message)"
             print("\(current)")
             if let text = try? String(contentsOfFile: path) {
                 newText = "\(text)\n\(current)"
@@ -72,17 +72,11 @@ open class SSLogManager: NSObject {
     }
 }
 
-var didSendPushMessage = [String]()
-
 public func sendPushNotication(message: String) {
-    if didSendPushMessage.contains(message) {
-        return
-    }
-    didSendPushMessage.append(message)
     log(message)
     let dic: [String: Any] = [
         "text": [
-            "content": "通知->\(currDateDesc())：\(message)"
+            "content": "通知->\(SSLogManager.currDateDesc)：\(message)"
         ],
         "msgtype": "text",
         "at": [
@@ -90,19 +84,19 @@ public func sendPushNotication(message: String) {
             "isAtAll": false
         ]
     ]
-    let _ = SSNetworkHelper.sendRequest(urlStr: "https://oapi.dingtalk.com/robot/send?access_token=002f7efb8f478ebdf5ac5102f153d3a651ace52c89b924c93fbb3d62abfc41e6", params: dic, header: ["Content-Type": "application/json"], method: .POST, timeOut: 10) { response in
-        
-    }
-}
-
-public func sendPushLog(_ log: String) {
-    let dic: [String: Any] = [
-        "text": [
-            "content": "Log->\(Date().timeIntervalSince1970.dateDesc!):\(log)"
-        ],
-        "msgtype": "text"
-    ]
-    let _ = SSNetworkHelper.sendRequest(urlStr: "https://oapi.dingtalk.com/robot/send?access_token=d4b8cbeb211614f13b32f20e5b7bcd58849b3c75a1b5ef6cddcf77202cc8b876", params: dic, header: ["Content-Type": "application/json"], method: .POST, timeOut: 10) { response in
-
+    let url = URL(string: "https://oapi.dingtalk.com/robot/send?access_token=002f7efb8f478ebdf5ac5102f153d3a651ace52c89b924c93fbb3d62abfc41e6")
+    if let url = url {
+        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 10)
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        if let data = try? JSONSerialization.data(withJSONObject: dic) {
+            request.httpBody = data
+        }
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+//            if let error = error {
+//
+//            }
+        }
+        task.resume()
     }
 }
