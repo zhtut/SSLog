@@ -72,18 +72,19 @@ open class SSLogManager: NSObject {
     }
 }
 
-public func sendPushNotication(message: String) {
-    log(message)
-    let dic: [String: Any] = [
+public func sendPushNotication(_ noti: String, atSelf: Bool = false) {
+    log(noti)
+    var dic: [String: Any] = [
         "text": [
-            "content": "通知->\(SSLogManager.currDateDesc)：\(message)"
+            "content": "通知->\(SSLogManager.currDateDesc)：\(noti)"
         ],
         "msgtype": "text",
-        "at": [
-            "atMobiles": [ "18566699715" ],
-            "isAtAll": false
-        ]
     ]
+    if atSelf {
+        dic["at"] = [
+            "isAtAll": true
+        ]
+    }
     let url = URL(string: "https://oapi.dingtalk.com/robot/send?access_token=002f7efb8f478ebdf5ac5102f153d3a651ace52c89b924c93fbb3d62abfc41e6")
     if let url = url {
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 10)
