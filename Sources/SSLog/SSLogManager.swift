@@ -6,7 +6,9 @@
 //
 
 import Foundation
-import SSNetwork
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public func log(_ log: String) {
     SSLogManager.shared.log(log)
