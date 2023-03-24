@@ -14,19 +14,25 @@ public func log(_ log: String) {
     SSLogManager.shared.log(log)
 }
 
+public func logErr(_ log: String) {
+    let manager = SSLogManager.error
+    manager.rootName = "Error"
+    manager.log(log)
+}
+
 open class SSLogManager: NSObject {
     public static let shared = SSLogManager()
+    public static let error = SSLogManager()
     
     var queue: DispatchQueue = DispatchQueue(label: "com.zzz.SSCommon(s)")
-    var rootPath = "\(NSHomeDirectory())/Log"
+    var rootName = "Log"
+    var rootPath: String {
+        "\(NSHomeDirectory())/\(rootName)"
+    }
     var currentFileName: String = ""
     
     public override init() {
         super.init()
-        let fm = FileManager.default
-        if fm.fileExists(atPath: rootPath) == false {
-            try? fm.createDirectory(atPath: rootPath, withIntermediateDirectories: true, attributes: nil)
-        }
     }
     
     open class var currDateDesc: String {
@@ -39,6 +45,11 @@ open class SSLogManager: NSObject {
     }
     
     func currentFilePath() -> String {
+        let fm = FileManager.default
+        if fm.fileExists(atPath: rootPath) == false {
+            try? fm.createDirectory(atPath: rootPath, withIntermediateDirectories: true, attributes: nil)
+            print("初始化日志根目录：\(rootPath)")
+        }
         if currentFileName.count == 0 {
             currentFileName = "\(SSLogManager.currDateDesc).txt"
         }
@@ -67,7 +78,7 @@ open class SSLogManager: NSObject {
             if let text = try? String(contentsOfFile: path) {
                 newText = "\(text)\n\(current)"
             } else {
-                newText = message
+                newText = current
             }
             try? newText.write(toFile: path, atomically: true, encoding: .utf8)
         }
